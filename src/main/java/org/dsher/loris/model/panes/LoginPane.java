@@ -70,19 +70,19 @@ public class LoginPane extends GridPane {
 		Label site = new Label("Site Root:");
 		this.add(site, 0, 1);
 
-		siteTextField.setText("http://loris.dsher.org");
+		siteTextField.setText("https://demo.loris.ca");
 		this.add(siteTextField, 1, 1);
 
 		Label userName = new Label("User Name:");
 		this.add(userName,  0,  2);
 
-		userTextField.setText("dsher");
+		userTextField.setText("admin");
 		this.add(userTextField, 1, 2);
 
 		Label pw = new Label("Password:");
 		this.add(pw, 0, 3);
 
-		pwBox.setText("ca)qn^7v5*48n1om");
+		pwBox.setText("demo20!7");
 		this.add(pwBox, 1, 3);
 
 		Button btn = new Button("Authenticate");

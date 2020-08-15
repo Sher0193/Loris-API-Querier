@@ -214,6 +214,7 @@ public class StagingPane extends GridPane {
 				logout.setDisable(true);
 				Session.getInstance().setRoot("");
 				Session.getInstance().setToken("");
+				Session.getInstance().setProjects(null);
 				Session.getInstance().showLoginPane();
 			}
 

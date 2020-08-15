@@ -17,6 +17,7 @@ import org.dsher.loris.model.query.candidates.Instrument;
 import org.dsher.loris.utils.SSLUtils;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 import javafx.application.Platform;
@@ -38,21 +39,17 @@ public class QueryInstruments extends GetQuery {
 
 	private boolean queryEndpoints() {
 		try {
-			SSLUtils.trustAllCertificiates();
 			for (int i = 0; i < endpoints.length; i++) {
 				queryEndpoint(endpoints[i]);
 				double index = i + 1;
 				Platform.runLater(() -> notifyProgressBar((index) / (double)endpoints.length));
+				Thread.sleep(100);
 			}
 			deliver(null);
-		} catch (GeneralSecurityException e) {
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
-			try {
-				SSLUtils.revertToDefaultCertificateTrust();
-			} catch (GeneralSecurityException e) {
-				e.printStackTrace();
-			}
+			return false;
 		}
 		return true;
 	}
@@ -60,6 +57,7 @@ public class QueryInstruments extends GetQuery {
 	private boolean queryEndpoint(String endpoint) {
 
 		try {
+			System.out.println("Querying " + endpoint + "...");
 			URL url = new URL(this.url + API_EXTENSION + endpoint);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			initializeHttpUrlConnection(con);
@@ -94,10 +92,12 @@ public class QueryInstruments extends GetQuery {
 
 						Set<Entry<String, JsonElement>> set = instObj.entrySet();
 						for (Entry<String, JsonElement> e : set) {
-							instrument.addField(e.getKey(), e.getValue().getAsString());
+							String value = (e.getValue().isJsonNull() ? "" : e.getValue().getAsString());
+							instrument.addField(e.getKey(), value);
 						}
 						// we add the instrument to the candidate only if we got something interesting back
 						cand.addInstrument(instrument);
+						System.out.println("Successfully found information.");
 						return true;
 					}
 

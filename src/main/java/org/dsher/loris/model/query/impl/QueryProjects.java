@@ -138,7 +138,8 @@ public class QueryProjects extends GetQuery {
 			if (e != null) { // deliver exception
 
 			} else { // deliver results
-				Session.getInstance().showStagingPane(results);
+				Session.getInstance().setProjects(results);
+				Session.getInstance().showStagingPane();
 			}
 		});
 	}

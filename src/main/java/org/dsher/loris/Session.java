@@ -22,6 +22,8 @@ public class Session {
 	private String token = "";
 	private String root = "";
 	
+	private ArrayList<Project> projects = new ArrayList<>();
+	
 	private Session() {
 
 	}
@@ -47,6 +49,10 @@ public class Session {
 
 	public void setToken(String token) {
 		this.token = token;
+	}
+	
+	public void setProjects(ArrayList<Project> projects) {
+		this.projects = projects;
 	}
 	
 	public void queryProjects() {
@@ -80,8 +86,8 @@ public class Session {
 	}
 	
 	@SuppressWarnings("exports")
-	public void showStagingPane(ArrayList<Project> results) {
-		Scene scene = new Scene(new StagingPane(results).build(), 640, 480);
+	public void showStagingPane() {
+		Scene scene = new Scene(new StagingPane(projects).build(), 640, 480);
 		stage.setTitle("Loris Querier - Staging");
         stage.setScene(scene);
         stage.show();

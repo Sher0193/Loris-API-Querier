@@ -15,7 +15,7 @@ import com.google.gson.JsonSyntaxException;
 
 public abstract class GetQuery implements Runnable {
 	
-	public static final String API_EXTENSION = "api/v0.0.2/";
+	public static final String API_EXTENSION = "api/v0.0.3/";
 	
 	protected String url, token;
 	
