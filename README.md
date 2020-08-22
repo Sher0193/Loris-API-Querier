@@ -7,4 +7,4 @@ Loris API Querier is a fully user-interfaced JavaFX program for querying LORIS-m
 The user will first specify the url for the LORIS instance to be used, then provide their login credentials to obtain a JWT key from the instance's API /login endpoint. The project structure will be queried, providing options for what candidates and test results should be queried. After the query has been run, the user will be provided the opportunity to select the relevant datapoints to generate into a CSV file.
 
 ## Release
-Loris API Querier is currently in closed Alpha - the program is functional should you wish to compile it yourself, but a release binary has not been provided at this point.
+[Latest Release](https://github.com/Sher0193/Loris-API-Querier/releases/latest)
