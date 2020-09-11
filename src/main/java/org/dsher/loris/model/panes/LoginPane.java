@@ -124,7 +124,10 @@ public class LoginPane extends GridPane {
 	 * @return Result string for outcome of login (null if successful or nothing useful to report to user)
 	 */
 	private String login() {
-		String payload = "{\"username\": \"" + userTextField.getText() + "\",\"password\": \"" + pwBox.getText() + "\"}";
+		JsonObject payloadJson = new JsonObject();
+		payloadJson.addProperty("username", userTextField.getText());
+		payloadJson.addProperty("password", pwBox.getText());
+		String payload = payloadJson.toString();
 		try {
 			URLEncoder.encode(payload, "utf-8");
 		} catch (UnsupportedEncodingException e2) {
