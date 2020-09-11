@@ -91,120 +91,20 @@ public class LoginPane extends GridPane {
 		hbBtn.getChildren().add(btn);
 		this.add(hbBtn, 1, 5);
 
-		final Text actiontarget = new Text();
-		actiontarget.setFill(Color.FIREBRICK);
-		this.add(actiontarget, 1, 7);
+		final Text actionTarget = new Text();
+		actionTarget.setFill(Color.FIREBRICK);
+		this.add(actionTarget, 1, 7);
 
 		btn.setOnAction(new EventHandler<ActionEvent>() {
 
 			@SuppressWarnings("deprecation")
 			@Override
 			public void handle(ActionEvent e) {
-				String payload = "{\"username\": \"" + userTextField.getText() + "\",\"password\": \"" + pwBox.getText() + "\"}";
-				try {
-					URLEncoder.encode(payload, "utf-8");
-				} catch (UnsupportedEncodingException e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
+				String eMsg = login();
+				if (eMsg != null) {
+					actionTarget.setText(eMsg);
 				}
-
-				URL url;
-				try {
-					if (siteTextField.getText().charAt(siteTextField.getText().length() - 1) != '/')
-						siteTextField.setText(siteTextField.getText() + "/");
-					url = new URL(siteTextField.getText() + GetQuery.API_EXTENSION + "login");
-
-					HttpURLConnection con = (HttpURLConnection) url.openConnection();
-					initializeHttpUrlConnection(con);
-
-					try {
-						con.connect();
-					} catch (SSLHandshakeException e1) {
-						ButtonType ignore = new ButtonType("Ignore", ButtonBar.ButtonData.OK_DONE);
-						ButtonType cancel = new ButtonType("Cancel Request", ButtonBar.ButtonData.CANCEL_CLOSE);
-
-						ButtonType[] buttons = {ignore, cancel};
-
-						InvalidCertAlert alert = new InvalidCertAlert(AlertType.WARNING, "Invalid CA Certificate", buttons, e1);
-
-						alert.build();
-
-						Optional<ButtonType> result = alert.showAndWait();
-						if (result.orElse(cancel) != ignore){
-							return;   
-						}
-
-						// User has elected to trust the certificate, so now we'll just ignore certs
-
-						// Install the all-trusting trust manager and redo the connection
-						try {
-							SSLUtils.trustAllCertificiates();
-							con = (HttpsURLConnection) url.openConnection();
-							initializeHttpUrlConnection(con);
-							con.connect();
-
-						} catch (GeneralSecurityException ex) {
-							ex.printStackTrace();
-						} finally {
-							// Now go back to default - we don't want to continue trusting every certificate
-							try {
-								SSLUtils.revertToDefaultCertificateTrust();
-							} catch (GeneralSecurityException ex) {
-								// Unfortunately we have to check for an exception again
-								ex.printStackTrace();
-							} 
-						}
-					}
-
-					try (OutputStream os = con.getOutputStream()) {
-						byte[] input = payload.getBytes(StandardCharsets.UTF_8);
-						os.write(input, 0, input.length);			
-					}
-
-					if (con.getResponseCode() == 500) {
-						actiontarget.setText("Server error at " + siteTextField.getText() + ".");
-						return;
-					} else if (con.getResponseCode() == 401) {
-						actiontarget.setText("Invalid username or password for this domain.");
-						return;
-					}
-
-					JsonParser parser = new JsonParser();
-					JsonElement tree = parser.parse(new InputStreamReader(con.getInputStream(), "utf-8"));
-
-					if (tree.isJsonObject()) {
-						JsonObject obj = tree.getAsJsonObject();
-
-						if (obj.get("token") != null) {
-							String token = obj.get("token").getAsString();
-							Session.getInstance().setToken(token);
-							Session.getInstance().setRoot(siteTextField.getText());
-							Session.getInstance().queryProjects();
-							return;
-						}
-					}
-
-				} catch (JsonSyntaxException e1) {
-					actiontarget.setText("Response did not look as expected, please double check your site url.");
-					return;
-				} catch (MalformedURLException e1) {
-					actiontarget.setText("Malformed URL.");
-					return;
-				} catch (SocketTimeoutException e1) {
-					actiontarget.setText("Request timed out.");
-					return;
-				} catch (FileNotFoundException e1) {
-					actiontarget.setText("Site does not appear to be a valid Loris instance.");
-					return;
-				} catch (UnknownHostException e1) {
-					actiontarget.setText("Unknown host.");
-					return;
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
-				actiontarget.setText("Authentication error.");
+				
 			}
 		});
 		return this;
@@ -217,6 +117,114 @@ public class LoginPane extends GridPane {
 		con.setDoInput(true);
 		con.setDoOutput(true);
 		con.setReadTimeout(15000);
+	}
+	
+	/**
+	 * Attempts to login and set pane to staging pane.
+	 * @return Result string for outcome of login (null if successful or nothing useful to report to user)
+	 */
+	private String login() {
+		String payload = "{\"username\": \"" + userTextField.getText() + "\",\"password\": \"" + pwBox.getText() + "\"}";
+		try {
+			URLEncoder.encode(payload, "utf-8");
+		} catch (UnsupportedEncodingException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+			return null;
+		}
+
+		URL url;
+		try {
+			if (siteTextField.getText().charAt(siteTextField.getText().length() - 1) != '/')
+				siteTextField.setText(siteTextField.getText() + "/");
+			url = new URL(siteTextField.getText() + GetQuery.API_EXTENSION + "login");
+
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			initializeHttpUrlConnection(con);
+
+			try {
+				con.connect();
+			} catch (SSLHandshakeException e1) {
+				ButtonType ignore = new ButtonType("Ignore", ButtonBar.ButtonData.OK_DONE);
+				ButtonType cancel = new ButtonType("Cancel Request", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+				ButtonType[] buttons = {ignore, cancel};
+
+				InvalidCertAlert alert = new InvalidCertAlert(AlertType.WARNING, "Invalid CA Certificate", buttons, e1);
+
+				alert.build();
+
+				Optional<ButtonType> result = alert.showAndWait();
+				if (result.orElse(cancel) != ignore){
+					return null;   
+				}
+
+				// User has elected to trust the certificate, so now we'll just ignore certs
+
+				// Install the all-trusting trust manager and redo the connection
+				try {
+					SSLUtils.trustAllCertificiates();
+					con = (HttpsURLConnection) url.openConnection();
+					initializeHttpUrlConnection(con);
+					con.connect();
+
+				} catch (GeneralSecurityException ex) {
+					ex.printStackTrace();
+					return null;
+				} finally {
+					// Now go back to default - we don't want to continue trusting every certificate
+					try {
+						SSLUtils.revertToDefaultCertificateTrust();
+					} catch (GeneralSecurityException ex) {
+						// Unfortunately we have to check for an exception again
+						ex.printStackTrace();
+						return null;
+					} 
+				}
+			}
+
+			try (OutputStream os = con.getOutputStream()) {
+				byte[] input = payload.getBytes(StandardCharsets.UTF_8);
+				os.write(input, 0, input.length);			
+			}
+
+			if (con.getResponseCode() == 500) {
+				return "Server error at " + siteTextField.getText() + ".";
+			} else if (con.getResponseCode() == 401) {
+				return "Invalid username or password for this domain.";
+			}
+
+			JsonParser parser = new JsonParser();
+			JsonElement tree = parser.parse(new InputStreamReader(con.getInputStream(), "utf-8"));
+
+			if (tree.isJsonObject()) {
+				JsonObject obj = tree.getAsJsonObject();
+
+				if (obj.get("token") != null) {
+					String token = obj.get("token").getAsString();
+					Session.getInstance().setToken(token);
+					Session.getInstance().setRoot(siteTextField.getText());
+					Session.getInstance().queryProjects();
+					return null;
+				}
+			}
+
+		} catch (JsonSyntaxException e1) {
+			return "Response did not look as expected, please double check your site url.";
+		} catch (MalformedURLException e1) {
+			return "Malformed URL.";
+		} catch (SocketTimeoutException e1) {
+			return "Request timed out.";
+		} catch (FileNotFoundException e1) {
+			return "Site does not appear to be a valid Loris instance.";
+		} catch (UnknownHostException e1) {
+			return "Unknown host.";
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		return "Authentication error.";
 	}
 	
 
