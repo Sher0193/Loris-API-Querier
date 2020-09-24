@@ -52,6 +52,7 @@ public class LoginPane extends GridPane {
 	private final TextField siteTextField = new TextField();
 	private final TextField userTextField = new TextField();
 	private final PasswordField pwBox = new PasswordField();
+	private final Text actionTarget = new Text();
 	
 	public LoginPane() {
 		super();
@@ -91,7 +92,6 @@ public class LoginPane extends GridPane {
 		hbBtn.getChildren().add(btn);
 		this.add(hbBtn, 1, 5);
 
-		final Text actionTarget = new Text();
 		actionTarget.setFill(Color.FIREBRICK);
 		this.add(actionTarget, 1, 7);
 
@@ -100,11 +100,8 @@ public class LoginPane extends GridPane {
 			@SuppressWarnings("deprecation")
 			@Override
 			public void handle(ActionEvent e) {
-				String eMsg = login();
-				if (eMsg != null) {
-					actionTarget.setText(eMsg);
-				}
-				
+				String url = (siteTextField.getText().charAt(siteTextField.getText().length() - 1) != '/') ? siteTextField.getText() + "/" : siteTextField.getText();
+				login(userTextField.getText(), pwBox.getText(), url);
 			}
 		});
 		return this;
@@ -121,26 +118,24 @@ public class LoginPane extends GridPane {
 	
 	/**
 	 * Attempts to login and set pane to staging pane.
-	 * @return Result string for outcome of login (null if successful or nothing useful to report to user)
+	 * @return true if login successful, false otherwise
 	 */
-	private String login() {
+	private boolean login(String username, String password, String urlString) {
 		JsonObject payloadJson = new JsonObject();
-		payloadJson.addProperty("username", userTextField.getText());
-		payloadJson.addProperty("password", pwBox.getText());
+		payloadJson.addProperty("username", username);
+		payloadJson.addProperty("password", password);
 		String payload = payloadJson.toString();
 		try {
 			URLEncoder.encode(payload, "utf-8");
 		} catch (UnsupportedEncodingException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
-			return null;
+			return false;
 		}
 
 		URL url;
 		try {
-			if (siteTextField.getText().charAt(siteTextField.getText().length() - 1) != '/')
-				siteTextField.setText(siteTextField.getText() + "/");
-			url = new URL(siteTextField.getText() + GetQuery.API_EXTENSION + "login");
+			url = new URL(urlString + GetQuery.API_EXTENSION + "login");
 
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			initializeHttpUrlConnection(con);
@@ -159,7 +154,7 @@ public class LoginPane extends GridPane {
 
 				Optional<ButtonType> result = alert.showAndWait();
 				if (result.orElse(cancel) != ignore){
-					return null;   
+					return false;   
 				}
 
 				// User has elected to trust the certificate, so now we'll just ignore certs
@@ -173,7 +168,7 @@ public class LoginPane extends GridPane {
 
 				} catch (GeneralSecurityException ex) {
 					ex.printStackTrace();
-					return null;
+					return false;
 				} finally {
 					// Now go back to default - we don't want to continue trusting every certificate
 					try {
@@ -181,7 +176,7 @@ public class LoginPane extends GridPane {
 					} catch (GeneralSecurityException ex) {
 						// Unfortunately we have to check for an exception again
 						ex.printStackTrace();
-						return null;
+						return false;
 					} 
 				}
 			}
@@ -192,9 +187,11 @@ public class LoginPane extends GridPane {
 			}
 
 			if (con.getResponseCode() == 500) {
-				return "Server error at " + siteTextField.getText() + ".";
+				errorMessage("Server error at " + urlString + ".");
+				return false;
 			} else if (con.getResponseCode() == 401) {
-				return "Invalid username or password for this domain.";
+				errorMessage("Invalid username or password for this domain.");
+				return false;
 			}
 
 			JsonParser parser = new JsonParser();
@@ -206,28 +203,38 @@ public class LoginPane extends GridPane {
 				if (obj.get("token") != null) {
 					String token = obj.get("token").getAsString();
 					Session.getInstance().setToken(token);
-					Session.getInstance().setRoot(siteTextField.getText());
+					Session.getInstance().setRoot(urlString);
 					Session.getInstance().queryProjects();
-					return null;
+					return true;
 				}
 			}
 
 		} catch (JsonSyntaxException e1) {
-			return "Response did not look as expected, please double check your site url.";
+			errorMessage("Response did not look as expected, please double check your site url.");
+			return false;
 		} catch (MalformedURLException e1) {
-			return "Malformed URL.";
+			errorMessage("Malformed URL.");
+			return false;
 		} catch (SocketTimeoutException e1) {
-			return "Request timed out.";
+			errorMessage("Request timed out.");
+			return false;
 		} catch (FileNotFoundException e1) {
-			return "Site does not appear to be a valid Loris instance.";
+			errorMessage("Site does not appear to be a valid Loris instance.");
+			return false;
 		} catch (UnknownHostException e1) {
-			return "Unknown host.";
+			errorMessage("Unknown host.");
+			return false;
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 
-		return "Authentication error.";
+		errorMessage("Authentication error.");
+		return false;
+	}
+	
+	private void errorMessage(String msg) {
+		actionTarget.setText(msg);
 	}
 	
 
