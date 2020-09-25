@@ -51,6 +51,7 @@ public class Session {
 		this.token = token;
 	}
 	
+	@SuppressWarnings("exports")
 	public void setProjects(ArrayList<Project> projects) {
 		this.projects = projects;
 	}
@@ -85,7 +86,6 @@ public class Session {
         stage.show();
 	}
 	
-	@SuppressWarnings("exports")
 	public void showStagingPane() {
 		Scene scene = new Scene(new StagingPane(projects).build(), 640, 480);
 		stage.setTitle("Loris Querier - Staging");

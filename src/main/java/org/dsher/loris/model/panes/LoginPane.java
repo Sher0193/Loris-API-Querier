@@ -97,7 +97,6 @@ public class LoginPane extends GridPane {
 
 		btn.setOnAction(new EventHandler<ActionEvent>() {
 
-			@SuppressWarnings("deprecation")
 			@Override
 			public void handle(ActionEvent e) {
 				String url = (siteTextField.getText().charAt(siteTextField.getText().length() - 1) != '/') ? siteTextField.getText() + "/" : siteTextField.getText();
@@ -194,8 +193,7 @@ public class LoginPane extends GridPane {
 				return false;
 			}
 
-			JsonParser parser = new JsonParser();
-			JsonElement tree = parser.parse(new InputStreamReader(con.getInputStream(), "utf-8"));
+			JsonElement tree = JsonParser.parseReader(new InputStreamReader(con.getInputStream(), "utf-8"));
 
 			if (tree.isJsonObject()) {
 				JsonObject obj = tree.getAsJsonObject();

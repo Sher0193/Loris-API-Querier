@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.Map.Entry;
@@ -14,10 +13,8 @@ import org.dsher.loris.model.panes.QueryPane;
 import org.dsher.loris.model.query.GetQuery;
 import org.dsher.loris.model.query.candidates.Candidate;
 import org.dsher.loris.model.query.candidates.Instrument;
-import org.dsher.loris.utils.SSLUtils;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 import javafx.application.Platform;

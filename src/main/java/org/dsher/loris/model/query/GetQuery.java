@@ -34,10 +34,8 @@ public abstract class GetQuery implements Runnable {
 		con.setReadTimeout(15000);
 	}
 	
-	@SuppressWarnings("deprecation")
 	protected JsonElement parseJsonFromConnection(HttpURLConnection con) throws JsonIOException, JsonSyntaxException, UnsupportedEncodingException, IOException {
-		JsonParser parser = new JsonParser();
-		return parser.parse(new InputStreamReader(con.getInputStream(), "UTF-8"));
+		return JsonParser.parseReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 	}
 	
 	protected void notifyProgressBar (double progress) {
